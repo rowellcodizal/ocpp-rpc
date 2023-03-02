@@ -13,3 +13,34 @@ module.exports = {
     ...errors,
     ...symbols,
 };
+
+//const {RPCServer, RPCClient} = require('ocpp-rpc');
+const express = require('express');
+
+const app = express();
+const httpServer = app.listen(3000, 'localhost');
+
+const rpcServer = new RPCServer();
+httpServer.on('upgrade', rpcServer.handleUpgrade);
+
+
+app.get('/Ocpp/CentralSystemService/', (req,res) => {
+    res.send('okay')
+});
+
+rpcServer.on('client', client => {
+    // RPC client connected
+    client.call('Say', `Hello, ${client.identity}!`);
+});
+
+// create a simple client to connect to the server
+const cli = new RPCClient({
+    endpoint: 'ws://localhost:3000',
+    identity: 'XYZ123'
+});
+
+cli.handle('Say', ({params}) => {
+    console.log('Server said:', params);
+});
+
+cli.connect();
